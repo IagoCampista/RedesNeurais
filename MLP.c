@@ -32,10 +32,10 @@ void print_array(float arr[], int size) {
     printf("\n");
 }
 
-float calculate_Sum_Arrays(float X[], float W[], int size) {
+float calculate_Sum_Arrays(float delta, float W[], int size) {
     float result = 0;
     for (int i = 1; i < size; i++) {
-        result += X[i] * W[i];
+        result += delta * W[i];
     }
     printf("V = %.3f\n", result);
     return result;
@@ -58,59 +58,96 @@ int main() {
     srand(time(NULL)); // seed the random number generator
 
     float X1[ARRAY_SIZE_LAYER1] = {1, 1, 0, 1, 0}, X2[ARRAY_SIZE_LAYER1] = {1, 0, 1, 0, 1}, X3[ARRAY_SIZE_LAYER1] = {1, 0, 0, 1, 0}, X4[ARRAY_SIZE_LAYER1]={1, 0, 0, 0, 1};
+    float X[4][ARRAY_SIZE_LAYER1] = {
+        {1, 1, 0, 1, 0},  // X1
+        {1, 0, 1, 0, 1},  // X2
+        {1, 0, 0, 1, 0},  // X3
+        {1, 0, 0, 0, 1}   // X4
+    };
+    float yd[4][2] = {
+        {1, 0},  // yd1
+        {0, 1},  // yd2
+        {1, 0},  // yd3
+        {0, 1}   // yd4
+    };
     float yd1[2] = {1, 0}, yd2[2] = {0, 1}, yd3[2] = {1, 0}, yd4[2] = {0, 1};
     float wi1[ARRAY_SIZE_LAYER1], wi2[ARRAY_SIZE_LAYER1];
     float wj1[ARRAY_SIZE_LAYER2], wj2[ARRAY_SIZE_LAYER2];
-    initialize_array(wi1, ARRAY_SIZE_LAYER1); // initialize the array
-    initialize_array(wi2, ARRAY_SIZE_LAYER1); // initialize the array
-    initialize_array(wj1, ARRAY_SIZE_LAYER2); // initialize the array
-    initialize_array(wj2, ARRAY_SIZE_LAYER2); // initialize the array
-
+    float dwj1[ARRAY_SIZE_LAYER2], dwj2[ARRAY_SIZE_LAYER2];
+    float dwi1[ARRAY_SIZE_LAYER1], dwi2[ARRAY_SIZE_LAYER1];
+    float Y1 [ARRAY_SIZE_LAYER2];
+    float yi1, yi2, yj1, yj2, erroj1, erroj2, quadraticError, gradientj1, gradientj2, gradient_i1, gradient_i2;
+    
     printf("Training arrays: \n");
     print_array(X1, ARRAY_SIZE_LAYER1);
     print_array(X2, ARRAY_SIZE_LAYER1);
     print_array(X3, ARRAY_SIZE_LAYER1);
     print_array(X4, ARRAY_SIZE_LAYER1);
+    printf("Training arrays: \n");
+    for (int count = 0; count < ARRAY_SIZE_LAYER1-1; count++){
+        printf("X: %d\t", count);
+        print_array(X[count], ARRAY_SIZE_LAYER1);
+        printf("Desired Y: %f %f\n", yd[count][0], yd[count][1]);
+    }
+    
+    printf("Desired Ys: \n");
+    print_array(yd1, 2);
+    print_array(yd2, 2);
+    print_array(yd3, 2);
+    print_array(yd4, 2);
+    
+
+    // initialize the arrays randomly
+    initialize_array(wi1, ARRAY_SIZE_LAYER1); 
+    initialize_array(wi2, ARRAY_SIZE_LAYER1); 
+    initialize_array(wj1, ARRAY_SIZE_LAYER2); 
+    initialize_array(wj2, ARRAY_SIZE_LAYER2); 
+
+  
     printf("Initialized arrays: \n");
     print_array(wi1, ARRAY_SIZE_LAYER1);
     print_array(wi2, ARRAY_SIZE_LAYER1);
     print_array(wj1, ARRAY_SIZE_LAYER2);
     print_array(wj2, ARRAY_SIZE_LAYER2);
 
+    for (int t_atual = 0; t_atual < 3; t_atual++){
+
+    }
+
     // calculate the y for the first layer
-    float yi1 = calculate_y(X1, wi1, ARRAY_SIZE_LAYER1);
-    float yi2 = calculate_y(X1, wi2, ARRAY_SIZE_LAYER1);
+    yi1 = calculate_y(X1, wi1, ARRAY_SIZE_LAYER1);
+    yi2 = calculate_y(X1, wi2, ARRAY_SIZE_LAYER1);
 
     // calculate the y for the second layer
-    float Y1 [ARRAY_SIZE_LAYER2]= {1, yi1, yi2};
-    float yj1 = calculate_y(Y1, wj1, ARRAY_SIZE_LAYER2);
-    float yj2 = calculate_y(Y1, wj2, ARRAY_SIZE_LAYER2);
+    Y1[0] = 1;
+    Y1[1] = yi1;
+    Y1[2] = yi2;
+    yj1 = calculate_y(Y1, wj1, ARRAY_SIZE_LAYER2);
+    yj2 = calculate_y(Y1, wj2, ARRAY_SIZE_LAYER2);
 
     // calculate error for the second layer
-    float erroj1 = yd1[0] - yj1;
-    float erroj2 = yd1[1] - yj2;
+    erroj1 = yd1[0] - yj1;
+    erroj2 = yd1[1] - yj2;
     printf("Erros %f %f\n", erroj1, erroj2);
 
     // calculate the quadratic error for this Training Array
-    float quadraticError = 0.5 * pow(erroj1, 2) + 0.5 * pow(erroj2, 2);
+    quadraticError = 0.5 * pow(erroj1, 2) + 0.5 * pow(erroj2, 2);
     printf("Quadratic Error: %.3f\n", quadraticError);
 
     // calculate the gradient for the local error for the second layer
-    float gradientj1 = yj1 * (1 - yj1) * erroj1 * A;
-    float gradientj2 = yj2 * (1 - yj2) * erroj2 * A;
+    gradientj1 = yj1 * (1 - yj1) * erroj1 * A;
+    gradientj2 = yj2 * (1 - yj2) * erroj2 * A;
     printf("Gradient for j1: %.3f, Gradient for j2: %.3f\n", gradientj1, gradientj2);
 
     // calculate the gradient for the first layer
-    float arrayGradient[3] = {1,  gradientj1, gradientj2}; // array gradient = \delta_j
-    float gradient_i1 = A * yi1 * (1 - yi1) * calculate_Sum_Arrays(arrayGradient, wj1, 3);
-    float gradient_i2 = A * yi2 * (1 - yi2) * calculate_Sum_Arrays(arrayGradient, wj2, 3);
+    gradient_i1 = A * yi1 * (1 - yi1) * calculate_Sum_Arrays(gradientj1, wj1, 3);
+    gradient_i2 = A * yi2 * (1 - yi2) * calculate_Sum_Arrays(gradientj2, wj2, 3);
     printf("Gradient for i1: %f, Gradient for i2: %f\n", gradient_i1, gradient_i2);
 
     //update the weights for the second layer
     printf("Wheight arrays of the SECOND layer before the update: \n");
     print_array(wj1, ARRAY_SIZE_LAYER2);
     print_array(wj2, ARRAY_SIZE_LAYER2);
-    float dwj1[ARRAY_SIZE_LAYER2], dwj2[ARRAY_SIZE_LAYER2];
     for (int i = 0; i < ARRAY_SIZE_LAYER2; i++) {
         dwj1[i] = LAMBDA * gradientj1 * Y1[i];
         dwj2[i] = LAMBDA * gradientj2 * Y1[i];
@@ -123,7 +160,6 @@ int main() {
     print_array(wj2, ARRAY_SIZE_LAYER2);
 
     // update the weights for the first layer
-    float dwi1[ARRAY_SIZE_LAYER1], dwi2[ARRAY_SIZE_LAYER1];
     printf("Wheight arrays of the FIRST layer before the update: \n");
     print_array(wi1, ARRAY_SIZE_LAYER1);
     print_array(wi2, ARRAY_SIZE_LAYER1);
