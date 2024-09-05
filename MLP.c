@@ -153,8 +153,8 @@ void diagnose_new_patients(float wi1[], float wi2[], float wj1[], float wj2[], f
         yj1 = calculate_y(Y1, wj1, ARRAY_SIZE_LAYER2);
         yj2 = calculate_y(Y1, wj2, ARRAY_SIZE_LAYER2);
 
-        if(yj1 > 0.5) printf("gripe\n");
-        if(yj2 > 0.5) printf("dengue\n");
+        printf("\nChance de gripe : %f", yj1);
+        printf("\nChance de dengue: %f", yj2);
 
         printf("\n\nGostaria de ver o diagnostico de mais um caso? [1- sim   2 - nao]\n");
         scanf("%d", &choice);
